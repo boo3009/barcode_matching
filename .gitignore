@@ -1,5 +1,8 @@
 *.o
 *.swp
 *.a
+converted_files/
+not_converted_files/
+main
 README.txt
 tags
