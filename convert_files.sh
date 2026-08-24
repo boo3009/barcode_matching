@@ -4,7 +4,7 @@ shopt -s nullglob
 
 DOS_UNIX="dos2unix"
 ICONV=(iconv -f CP1251 -t UTF-8)
-ELF="/usr/local/wills_dir/barcode_matching/main"
+#ELF (exported from bashrc)
 MAIN="main"
 
 YELLOW='\e[33m'
