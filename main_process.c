@@ -209,6 +209,7 @@ void main_processing_function(Hashmap* hashmap) {
 		}
 		fclose(cur_file);
 	}
+	printf("-------------------------------------------------------------------\n");
 	rewinddir(dir);
 	while((ptr_to_files=readdir(dir)) != NULL) {
 		if(ptr_to_files->d_name[0]=='.' || strcmp(ptr_to_files->d_name,"main")==0)
