@@ -137,7 +137,7 @@ Node* search_node(str key,const Hashmap* hmap) {
 		if(strcmp(tmp->key,key)==0)
 			return tmp;
 	}
-	printf("---Info (search_node): the key \"%s\" not exists\n",key);
+//	printf("---Info (search_node): the key \"%s\" not exists\n",key);
 	return NULL;
 }
 

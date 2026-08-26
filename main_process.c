@@ -120,7 +120,7 @@ size_t fill_hashmap(FILE* raw_file,Hashmap* hashmap,Lengths* lengths,const char*
 			if(ptr-code==lengths->code_len)
 				*ptr='\0';
 			else
-				printf("WHAT THE FUCK MAN\n");
+				printf("SEVEN HELLS, MAN\n");
 			insert_node(code,pal_num,hashmap);
 			count++;
 		}
@@ -128,12 +128,13 @@ size_t fill_hashmap(FILE* raw_file,Hashmap* hashmap,Lengths* lengths,const char*
 	return count;
 }
 
-size_t fill_array(FILE* code_file,Hashmap* hashmap,Array* arr,size_t code_len) {
+size_t fill_array(FILE* code_file,Hashmap* hashmap,Array* arr,size_t code_len,FILE* not_found,const char* filename) {
 	fseek(code_file,0,SEEK_SET);
-	size_t count=0;
+	size_t count=0,line_number=0;
 	char code[code_len+1];
 	char buf[BUF_MAX_LEN];
 	while(fgets(buf,sizeof(buf),code_file)!=NULL) {
+		line_number++;
 		if(buf[0]>='0' && buf[0]<='9') {
 			char* ptr=code;
 			for(char* tmp=buf;*tmp!='\n' && *tmp!='\0' && ptr-code!=code_len;tmp++,ptr++)
@@ -141,12 +142,13 @@ size_t fill_array(FILE* code_file,Hashmap* hashmap,Array* arr,size_t code_len) {
 			if(ptr-code==code_len)
 				*ptr='\0';
 			else
-				printf("WHAT THE FUCK MAN\n");
+				printf("SEVEN HELLS, MAN\n");
 			Node* node=search_node(code,hashmap);
 			if(node!=NULL) {
 				add_struct(node->key,node->value,arr);
 				count++;
-			}
+			} else
+				fprintf(not_found,"%s   ---not found---   (from file: \"%s\" on line: \"%ld\")\n",code,filename,line_number);
 		}
 	}
 	return count;
@@ -202,7 +204,7 @@ void main_processing_function(Hashmap* hashmap) {
 			
 			Lengths* lengths=get_lengths(cur_file,pal_num);
 			size_t count=fill_hashmap(cur_file,hashmap,lengths,pal_num);
-			printf("---Codes filtered and added to hashmap: \"%s\", %ld\n",ptr_to_files->d_name,count);
+			printf("---Codes filtered and added to hashmap: \"%s\", "GREEN"%ld"RESET"\n",ptr_to_files->d_name,count);
 			free(pal_num);
 			free(lengths->code_example);
 			free(lengths);
@@ -210,9 +212,16 @@ void main_processing_function(Hashmap* hashmap) {
 		fclose(cur_file);
 	}
 	printf("-------------------------------------------------------------------\n");
+	const char* const not_found="NOT_FOUND_CODES.txt";
+	FILE* not_found_codes_file=fopen(not_found,"a");
+	if(not_found_codes_file==NULL) {
+		fprintf(stderr,"---Error (fill_array): can't open file: \"not_found_codes.txt\"\n");
+		return;
+	}
+
 	rewinddir(dir);
 	while((ptr_to_files=readdir(dir)) != NULL) {
-		if(ptr_to_files->d_name[0]=='.' || strcmp(ptr_to_files->d_name,"main")==0)
+		if(ptr_to_files->d_name[0]=='.' || strcmp(ptr_to_files->d_name,"main")==0 || strncmp(ptr_to_files->d_name,not_found,FIRST_LETTERS)==0)
 			continue;
 		cur_file=fopen(ptr_to_files->d_name,"r");
 		if(cur_file==NULL) {
@@ -224,13 +233,14 @@ void main_processing_function(Hashmap* hashmap) {
 			size_t code_len=get_code_len(cur_file); 
 			size_t lines_count=get_lines_count(cur_file);
 			Array* array=create_array(lines_count);
-			size_t count=fill_array(cur_file,hashmap,array,code_len);
-			printf("---Codes filtered and added to array: \"%s\", %ld\n",ptr_to_files->d_name,count);
-			sort_array(array);
+			size_t count=fill_array(cur_file,hashmap,array,code_len,not_found_codes_file,ptr_to_files->d_name);
+			printf("---Codes filtered and added to the array: \"%s\, "GREEN"%ld (of %ld)"RESET"\n",ptr_to_files->d_name,count,lines_count);
+			sort_array(array,array->nearest_empty_index);
 			write_array_to_file(array,ptr_to_files->d_name);
 			free_array(array);
 		}
 		fclose(cur_file);
 	}
+	fclose(not_found_codes_file);
 	closedir(dir);
 }

@@ -21,7 +21,7 @@ int compare_pal(const void* a,const void* b);
 Array* create_array(size_t size);
 int free_array(Array* array);
 int add_struct(const char* code,const char* pal,Array* array);
-void sort_array(Array* array);
+void sort_array(Array* array,size_t occupied_size);
 void write_array_to_file(Array* array,const char* filename);
 
 #endif

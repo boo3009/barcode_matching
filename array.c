@@ -80,13 +80,12 @@ int add_struct(const char* code,const char* pal,Array* array) {
 	return EXIT_SUCCESS;
 }
 
-void sort_array(Array* array) {
+void sort_array(Array* array,size_t occ_size) {
 	if(array==NULL) {
 		printf("---Info (sort_array): provided NULL pointer on Array, nothing to sort.\n");
 		return;
 	}
-	qsort(array->arr_ptr,array->arr_size,sizeof(Code_pal*),compare_pal);
-	printf("---Done! Array is sorted with qsort.\n");
+	qsort(array->arr_ptr,occ_size,sizeof(Code_pal*),compare_pal);
 }
 
 void write_array_to_file(Array* array,const char* filename) {
@@ -106,7 +105,9 @@ void write_array_to_file(Array* array,const char* filename) {
 		fprintf(stderr,"---Error (sort_array): can't open file \"%s.txt\"\n",new_filename);
 		return;
 	}
-	for(size_t i=0;i!=array->arr_size;i++) {
+	for(size_t i=0;i!=array->nearest_empty_index;i++) {
+		if(array->arr_ptr[i]==NULL || array->arr_ptr[i]->code==NULL || array->arr_ptr[i]->pal==NULL)
+			continue;
 		if(i!=0 && strcmp(array->arr_ptr[i]->pal,array->arr_ptr[i-1]->pal)!=0)
 			fprintf(file,"\n");
 		fprintf(file,"%s   %s\n",array->arr_ptr[i]->code,array->arr_ptr[i]->pal);
