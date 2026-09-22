@@ -22,8 +22,8 @@ char* get_pal_num(FILE *raw_file);
 Lengths* get_lengths(FILE* raw_file,const char* pal_num);
 size_t get_lines_count(FILE* code_file);
 size_t get_code_len(FILE* codes_file);
-size_t fill_hashmap(FILE* raw_file,Hashmap* hashmap,Lengths* lengths,const char* pal_num);
-size_t fill_array(FILE* code_file,Hashmap* hashmap,Array* arr,size_t code_len,FILE* not_found,const char* filename);
-void main_processing_function(Hashmap* hashmap);
+int fill_hashmap(FILE* raw_file,Hashmap** hashmap,Lengths* lengths,const char* pal_num);
+int fill_array(FILE* code_file,Hashmap* hashmap,Array* arr,size_t code_len,FILE* not_found,const char* filename);
+void main_processing_function(Hashmap** hashmap);
 
 #endif

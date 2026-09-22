@@ -3,6 +3,7 @@
 shopt -s nullglob
 
 DOS_UNIX="dos2unix"
+UNIX_DOS="unix2dos"
 ICONV=(iconv -f CP1251 -t UTF-8)
 #ELF (exported from bashrc)
 MAIN="main"
@@ -74,6 +75,9 @@ if [[ $? -ne 0 ]]; then
 	echo -e "---${PURPLE}Error${RESET} while executing ELF file ${GREEN}'main'${RESET}.${PURPLE}Terminating process${RESET}"
 	exit 1
 fi
+
+find . -maxdepth 1 -type f -name "*_FIN*" -exec "$UNIX_DOS" {} + 2>/dev/null
+
 echo "-------------------------------------------------------------------"
 echo -e "---${GREEN}Script worked successfully,enjoy results.${RESET}"
 echo "-------------------------------------------------------------------"

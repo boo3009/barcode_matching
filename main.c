@@ -19,7 +19,7 @@ int main() {
 		}
 	}
 	Hashmap* hashmap=create_hashmap((size_t)bucket_count);
-	main_processing_function(hashmap);
+	main_processing_function(&hashmap);
 	free_hashmap(hashmap);
 	return 0;
 }

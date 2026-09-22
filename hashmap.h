@@ -25,7 +25,7 @@ Hashmap* create_hashmap(size_t bucket_count);
 Hashmap* resize_hashmap(Hashmap* old_hmap);
 void free_hashmap(Hashmap* hmap);
 
-int insert_node(str key,str value,Hashmap* hmap);
+int insert_node(str key,str value,Hashmap** hmap);
 int move_node(Hashmap* old_hmap,size_t old_index,Node* node,Hashmap* new_hmap);
 Node* search_node(str key,const Hashmap* hmap);
 void free_node(str key,Hashmap* hmap);

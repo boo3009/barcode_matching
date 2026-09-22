@@ -107,9 +107,9 @@ Lengths* get_lengths(FILE* raw_file,const char* const pal_num) {
 	return lengths;
 }
 
-size_t fill_hashmap(FILE* raw_file,Hashmap* hashmap,Lengths* lengths,const char* const pal_num) {
+int fill_hashmap(FILE* raw_file,Hashmap** hashmap,Lengths* lengths,const char* const pal_num) {
 	fseek(raw_file,0,SEEK_SET);
-	size_t count=0;
+	int count=0;
 	char code[lengths->code_len+1];
 	char buf[BUF_MAX_LEN];
 	while(fgets(buf,sizeof(buf),raw_file)!=NULL) {
@@ -121,16 +121,17 @@ size_t fill_hashmap(FILE* raw_file,Hashmap* hashmap,Lengths* lengths,const char*
 				*ptr='\0';
 			else
 				printf("SEVEN HELLS, MAN\n");
-			insert_node(code,pal_num,hashmap);
+			if(insert_node(code,pal_num,hashmap)==EXIT_FAILURE)
+				return -1;
 			count++;
 		}
 	}
 	return count;
 }
 
-size_t fill_array(FILE* code_file,Hashmap* hashmap,Array* arr,size_t code_len,FILE* not_found,const char* filename) {
+int fill_array(FILE* code_file,Hashmap* hashmap,Array* arr,size_t code_len,FILE* not_found,const char* filename) {
 	fseek(code_file,0,SEEK_SET);
-	size_t count=0,line_number=0;
+	int count=0,line_number=0;
 	char code[code_len+1];
 	char buf[BUF_MAX_LEN];
 	while(fgets(buf,sizeof(buf),code_file)!=NULL) {
@@ -148,7 +149,7 @@ size_t fill_array(FILE* code_file,Hashmap* hashmap,Array* arr,size_t code_len,FI
 				add_struct(node->key,node->value,arr);
 				count++;
 			} else
-				fprintf(not_found,"%s   ---not found---   (from file: \"%s\" on line: \"%ld\")\n",code,filename,line_number);
+				fprintf(not_found,"%s   ---not found---   (from file: \"%s\" on line: \"%d\")\n",code,filename,line_number);
 		}
 	}
 	return count;
@@ -179,7 +180,7 @@ size_t get_code_len(FILE* codes_file) {
 	return code_len;
 }
 
-void main_processing_function(Hashmap* hashmap) {
+void main_processing_function(Hashmap** hashmap) {
 	DIR* dir=opendir(".");
 	if(dir==NULL) {
 		fprintf(stderr,"---Error (main_processing_function): can't open the current directory!\n");
@@ -203,8 +204,10 @@ void main_processing_function(Hashmap* hashmap) {
 			printf("---Pallet number for file \"%s\" is: %s\n",ptr_to_files->d_name,pal_num);
 			
 			Lengths* lengths=get_lengths(cur_file,pal_num);
-			size_t count=fill_hashmap(cur_file,hashmap,lengths,pal_num);
-			printf("---Codes filtered and added to hashmap: \"%s\", "GREEN"%ld"RESET"\n",ptr_to_files->d_name,count);
+			int count=fill_hashmap(cur_file,hashmap,lengths,pal_num);
+			if(count==-1)
+				break;
+			printf("---Codes filtered and added to hashmap: \"%s\", "GREEN"%d"RESET"\n",ptr_to_files->d_name,count);
 			free(pal_num);
 			free(lengths->code_example);
 			free(lengths);
@@ -233,8 +236,8 @@ void main_processing_function(Hashmap* hashmap) {
 			size_t code_len=get_code_len(cur_file); 
 			size_t lines_count=get_lines_count(cur_file);
 			Array* array=create_array(lines_count);
-			size_t count=fill_array(cur_file,hashmap,array,code_len,not_found_codes_file,ptr_to_files->d_name);
-			printf("---Codes filtered and added to the array: \"%s\, "GREEN"%ld (of %ld)"RESET"\n",ptr_to_files->d_name,count,lines_count);
+			int count=fill_array(cur_file,*hashmap,array,code_len,not_found_codes_file,ptr_to_files->d_name);
+			printf("---Codes filtered and added to the array: \"%s\", "GREEN"%d (of %ld)"RESET"\n",ptr_to_files->d_name,count,lines_count);
 			sort_array(array,array->nearest_empty_index);
 			write_array_to_file(array,ptr_to_files->d_name);
 			free_array(array);

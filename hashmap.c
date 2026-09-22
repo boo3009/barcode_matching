@@ -12,12 +12,16 @@ Hashmap* create_hashmap(size_t bucket_count) {
 	if(bucket_count==0)
 		return NULL;
 	bucket_count=get_nearest_prime(bucket_count);
+	if(bucket_count>MAX_SIZE) {
+		fprintf(stderr,"---Error (create_hashmap): nearest prime is > MAXSIZE. Exiting");
+		return NULL;
+	}	
 	hmap->arr_ptr=malloc(sizeof(Node*)*bucket_count);
 	if(hmap->arr_ptr==NULL) {
 		fprintf(stderr,"---Error (create_hashmap): can't malloc array of Node pointers");
 		return NULL;
 	}
-	for(size_t i=0;i!=bucket_count;++i)
+	for(size_t i=0;i!=hmap->bucket_count;++i)
 		hmap->arr_ptr[i]=NULL;
 	hmap->bucket_count=bucket_count;
 	hmap->node_count=0;
@@ -32,8 +36,12 @@ Hashmap* resize_hashmap(Hashmap* old_hmap) {
 		return NULL;
 	}
 	size_t new_bucket_count = old_hmap->bucket_count*2<MAX_SIZE ? 
-												 old_hmap->bucket_count*2 : MAX_SIZE-1;
+												 		old_hmap->bucket_count*2 : MAX_SIZE-1;
 	new_bucket_count=get_nearest_prime(new_bucket_count);
+	if(new_bucket_count>MAX_SIZE) {
+		fprintf(stderr,"---Error (create_hashmap): nearest prime is > MAXSIZE. Exiting");
+		return NULL;
+	}	
 	Hashmap* new_hmap=create_hashmap(new_bucket_count);
 	if(new_hmap==NULL)
 		return NULL;
@@ -44,7 +52,6 @@ Hashmap* resize_hashmap(Hashmap* old_hmap) {
 				return NULL;
 	}
 	free_hashmap(old_hmap);
-	old_hmap=NULL;
 	return new_hmap;
 }
 
@@ -66,16 +73,14 @@ void free_hashmap(Hashmap* hmap) {
 	hmap=NULL;
 }
 
-int insert_node(str key,str value,Hashmap* hmap) {
-	if(hmap && (hmap->load_factor > MAX_LOAD_FACTOR)) {
-		if(resize_hashmap(hmap)==NULL)
-			return EXIT_FAILURE;
-	}
-	if(hmap==NULL) {
+int insert_node(str key,str value,Hashmap** hmap) {
+	if(*hmap && ((*hmap)->load_factor > MAX_LOAD_FACTOR))
+		*hmap=resize_hashmap(*hmap);
+	if(*hmap==NULL) {
 		printf("---Info (insert_node): provided NULL pointer on Hashmap\n");
 		return EXIT_FAILURE;
 	}
-	Node* new_node=(Node*)malloc(sizeof(Node));
+	Node* new_node=malloc(sizeof(Node));
 	if(new_node==NULL) {
 		fprintf(stderr,"---Error (insert_node): can't malloc Node");
 		return EXIT_FAILURE;
@@ -86,11 +91,11 @@ int insert_node(str key,str value,Hashmap* hmap) {
 		fprintf(stderr,"---Error (insert_node): can't malloc key or value for Node");
 		return EXIT_FAILURE;
 	}
-	size_t index=calculate_index(key,hmap->bucket_count);
-	if(hmap->arr_ptr[index]==NULL)
-		hmap->occupied_count++;
+	size_t index=calculate_index(key,(*hmap)->bucket_count);
+	if((*hmap)->arr_ptr[index]==NULL)
+		(*hmap)->occupied_count++;
 	else {
-		for(Node* tmp=hmap->arr_ptr[index];tmp!=NULL;tmp=tmp->next)
+		for(Node* tmp=(*hmap)->arr_ptr[index];tmp!=NULL;tmp=tmp->next)
 			if(strcmp(tmp->key,key)==0) {
 				printf("---Info (insert_node): key already exists. No insertion!: %s,%s\n",key,tmp->key);
 				return EXIT_SUCCESS;
@@ -100,12 +105,11 @@ int insert_node(str key,str value,Hashmap* hmap) {
 	new_node->key[strlen(key)]='\0';
 	strncpy(new_node->value,value,strlen(value));
 	new_node->value[strlen(value)]='\0';
-	new_node->next=hmap->arr_ptr[index];
-	hmap->arr_ptr[index]=new_node;
-	hmap->node_count++;
-	if(hmap->bucket_count!=0)
-		hmap->load_factor = (float)hmap->occupied_count / (float)hmap->bucket_count;
-	//new_node=NULL;
+	new_node->next=(*hmap)->arr_ptr[index];
+	(*hmap)->arr_ptr[index]=new_node;
+	(*hmap)->node_count++;
+	if((*hmap)->bucket_count!=0)
+		(*hmap)->load_factor = (float)(*hmap)->occupied_count / (float)(*hmap)->bucket_count;
 	return EXIT_SUCCESS;
 }
 
@@ -167,13 +171,13 @@ void free_node(str key,Hashmap* hmap) {
 }
 
 size_t calculate_index(const char* s,size_t bucket_count) {
-	size_t hash=5381;
+	size_t hash=5381 % bucket_count;
 	int c;
 	for(const char* tmp=s;*tmp!='\0';tmp++) {
 		c=*tmp;
-		hash=((hash<<5)+hash)+c;
+		hash=(((hash<<5)+hash)+c) % bucket_count;
 	}
-	return hash % bucket_count;
+	return hash;
 }
 
 size_t get_collisions_count(const Hashmap* hmap) {
@@ -193,14 +197,18 @@ void print_hashmap(const Hashmap* hmap) {
 }
 
 size_t get_nearest_prime(size_t number) {
-	size_t res=0;
-	size_t offset = number==MAX_SIZE-1 ? -1 : 1;
-	size_t max_min = number==MAX_SIZE-1 ? 0 : MAX_SIZE-1;
+	int res=0;
+	int offset = (number==MAX_SIZE-1) ? -1 : 1;
+	int max_min = (number==MAX_SIZE-1) ? 0 : MAX_SIZE-1;
 	for(res=number;res!=max_min;res+=offset) {
 		if(res==1 || (res!=2 && res%2==0) || (res!=3 && res%3==0) || 
 		  (res!=5 && res%5==0) || (res!=7 && res%7==0))
 			continue;
 		break;
 	}
+	if(res<0) {
+		fprintf(stderr,"---Error (get_nearest_prime): nearest prime is < 0. Exiting");
+		return MAX_SIZE-1;
+	}	
 	return res;
 }
