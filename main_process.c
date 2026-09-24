@@ -76,9 +76,9 @@ char* get_pal_num(FILE *raw_file) {
 
 Lengths* get_lengths(FILE* raw_file,const char* const pal_num) {
 	fseek(raw_file,0,SEEK_SET);
-	Lengths* lengths=malloc(sizeof(Lengths));
+	Lengths* lengths=calloc(1,sizeof(Lengths));
 	if(lengths==NULL) {
-		fprintf(stderr,"---Error (get_lengths): can't malloc struct Lengths!\n");
+		fprintf(stderr,"---Error (get_lengths): can't calloc struct Lengths!\n");
 		return NULL;
 	}
 	lengths->pal_len=strlen(pal_num);

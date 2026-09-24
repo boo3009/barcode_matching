@@ -13,14 +13,14 @@ int compare_pal(const void* a,const void* b) {
 Array* create_array(size_t size) {
 	if(size==0)
 		return NULL;
-	Array* array=malloc(sizeof(Array));
+	Array* array=calloc(1,sizeof(Array));
 	if(array==NULL) {
-		fprintf(stderr,"---Error (create_array): can't malloc struct Array.\n");
+		fprintf(stderr,"---Error (create_array): can't calloc struct Array.\n");
 		return NULL;
 	}
-	array->arr_ptr=malloc(sizeof(Code_pal*)*size);
+	array->arr_ptr=calloc(1,sizeof(Code_pal*)*size);
 	if(array->arr_ptr==NULL) {
-		fprintf(stderr,"---Error (create_array): can't malloc array of Code_pal*.\n");
+		fprintf(stderr,"---Error (create_array): can't calloc array of Code_pal*.\n");
 		return NULL;
 	}
 	for(size_t i=0;i!=size;++i)
@@ -59,9 +59,9 @@ int add_struct(const char* code,const char* pal,Array* array) {
 		printf("---Info (add_struct): array is full of data, can't add any node.\n");
 		return EXIT_FAILURE;
 	}
-	Code_pal* node=malloc(sizeof(Code_pal));
+	Code_pal* node=calloc(1,sizeof(Code_pal));
 	if(node==NULL) {
-		fprintf(stderr,"---Error (add_struct): can't malloc struct Code_pal.\n");
+		fprintf(stderr,"---Error (add_struct): can't calloc struct Code_pal.\n");
 		return EXIT_FAILURE;
 	}
 	node->code=malloc(strlen(code)+1);

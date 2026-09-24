@@ -4,9 +4,9 @@
 #include "hashmap.h"
 
 Hashmap* create_hashmap(size_t bucket_count) {
-	Hashmap* hmap=malloc(sizeof(Hashmap));
+	Hashmap* hmap=calloc(1,sizeof(Hashmap));
 	if(hmap==NULL) {
-		fprintf(stderr,"---Error (create_hashmap): can't malloc struct Hashmap");
+		fprintf(stderr,"---Error (create_hashmap): can't calloc struct Hashmap");
 		return NULL;
 	}
 	if(bucket_count==0)
@@ -16,9 +16,9 @@ Hashmap* create_hashmap(size_t bucket_count) {
 		fprintf(stderr,"---Error (create_hashmap): nearest prime is > MAXSIZE. Exiting");
 		return NULL;
 	}	
-	hmap->arr_ptr=malloc(sizeof(Node*)*bucket_count);
+	hmap->arr_ptr=calloc(1,sizeof(Node*)*bucket_count);
 	if(hmap->arr_ptr==NULL) {
-		fprintf(stderr,"---Error (create_hashmap): can't malloc array of Node pointers");
+		fprintf(stderr,"---Error (create_hashmap): can't calloc array of Node pointers");
 		return NULL;
 	}
 	for(size_t i=0;i!=hmap->bucket_count;++i)
@@ -80,9 +80,9 @@ int insert_node(str key,str value,Hashmap** hmap) {
 		printf("---Info (insert_node): provided NULL pointer on Hashmap\n");
 		return EXIT_FAILURE;
 	}
-	Node* new_node=malloc(sizeof(Node));
+	Node* new_node=calloc(1,sizeof(Node));
 	if(new_node==NULL) {
-		fprintf(stderr,"---Error (insert_node): can't malloc Node");
+		fprintf(stderr,"---Error (insert_node): can't calloc Node");
 		return EXIT_FAILURE;
 	}
 	new_node->key=malloc(strlen(key)+1);
